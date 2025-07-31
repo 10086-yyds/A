@@ -12,7 +12,15 @@ let caseSchema = new mongoose.Schema({}); //病例表
 
 let caseModel = mongoose.model("case", caseSchema, "case");
 
-let drugSchema = new mongoose.Schema({}); //药品表
+let drugSchema = new mongoose.Schema({
+  image: String,
+  name: String,
+  price:Number,
+  tag:{
+    type:String,
+    default:''
+  },
+}); //药品表
 
 let drugModel = mongoose.model("drug", drugSchema, "drug");
 
