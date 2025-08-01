@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
   Image,
   Dimensions,
   FlatList,
@@ -71,23 +71,45 @@ const Drug = ({ navigation }: any) => {
   ];
 
   const fetchDrugData = async () => {
-    try{
-      const url = 'http://172.20.10.3:3000/Zjf'
-      const response = await fetch(url)
-      if(response.ok){
+
+    try {
+      const url = 'http://192.168.100.198:3000/Zjf'
+
+      // 创建超时控制器（兼容性更好的方案）
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId); // 清除超时定时器
+
+      if (response.ok) {
         const data = await response.json()
-        if(data.data && data.data.length > 0) {
-          const processedData = data.data.map((item: any) => ({
-            ...item,
-            // 将localhost替换为实际IP地址
-            image: item.image ? item.image.replace('localhost', '172.20.10.3') : null
-          }))
-          setDrugProducts(processedData)
+        console.log('后端返回的数据:', data)
+        // 将数据设置到状态中
+        if (data.data && data.data.length > 0) {
+          setDrugProducts(data.data)
         }
         return data
+      } else {
+        console.error('服务器响应错误:', response.status, response.statusText)
       }
-    }catch(error) {
+    } catch (error) {
       console.error('请求错误:', error)
+      // 网络错误时显示友好提示
+      if (error instanceof TypeError && error.message.includes('Network request failed')) {
+        console.log('网络连接失败，请检查网络设置或后端服务是否正常运行')
+        console.log('提示：请确保后端服务器在 http://192.168.100.198:3000 正常运行')
+      }
+      if (error.name === 'AbortError') {
+        console.log('请求超时，请检查网络连接')
+      }
     }
   }
 
@@ -119,13 +141,13 @@ const Drug = ({ navigation }: any) => {
         showBack={true}
         backIcon={require('../../../image/1.png')}
       />
-      
+
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* 搜索框 */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
             <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput 
+            <TextInput
               style={styles.searchInput}
               placeholder="搜一搜药名、症状"
               placeholderTextColor="#999"
@@ -189,20 +211,16 @@ const Drug = ({ navigation }: any) => {
 
         {/* 推荐商品 */}
         <View style={styles.productsContainer}>
-          {(drugProducts.length > 0 ? drugProducts : defaultProducts).map((product: any) => (
-            <TouchableOpacity key={product._id} style={styles.productCard}>
-                              <View style={styles.productImage}>
-                  {product.image ? (
-                    <Image 
-                      source={{ uri: product.image }} 
-                      style={styles.image}
-                      onLoad={() => console.log('图片加载成功:', product.image)}
-                      onError={(error) => console.log('图片加载失败:', product.image, error.nativeEvent.error)}
-                    />
-                  ) : (
-                    <Text style={styles.productImagePlaceholder}>📋</Text>
-                  )}
-                </View>
+
+          {(drugProducts.length > 0 ? drugProducts : defaultProducts).map((product: any, index: number) => (
+            <TouchableOpacity key={product._id || product.id || `product-${index}`} style={styles.productCard}>
+              <View style={styles.productImage}>
+                {product.image ? (
+                  <Image source={{ uri: product.image }} style={styles.productImage} />
+                ) : (
+                  <Text style={styles.productImagePlaceholder}>💊</Text>
+                )}
+              </View>
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{product.name}</Text>
                 <View style={styles.productBottom}>
