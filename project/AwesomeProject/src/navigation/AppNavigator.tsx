@@ -10,6 +10,9 @@ import Shou from '../pages/Shou/Shou';
 import Drug from '../pages/Drug/Drug';
 import Cart from '../pages/Cart/Cart';
 import Mine from '../pages/Mine/Mine';
+import AiConsult from '../pages/AiConsult/AiConsult';
+import ArticleDetail from '../pages/Detail/ArticleDetail';
+import LineLiao from '../pages/LineLiao/LineLiao';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,6 +83,9 @@ const AppNavigator = () => {
       >
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
+        <Stack.Screen name="AiConsult" component={AiConsult} />
+        <Stack.Screen name="ArticleDetail" component={ArticleDetail} />
+        <Stack.Screen name="LineLiao" component={LineLiao} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -31,6 +31,19 @@
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
+		<!-- {{ AURA-X: Add - 允许localhost HTTP请求. Approval: 修复iOS网络连接问题. }} -->
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+			</dict>
+		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>

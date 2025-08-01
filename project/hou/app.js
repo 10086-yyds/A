@@ -1,6 +1,9 @@
 // 加载环境变量
 require('dotenv').config();
 
+// 初始化数据库连接
+require('./db/database');
+
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
@@ -12,7 +15,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var LzRouter = require("./routes/Lz/index");
 var JbhRouter = require("./routes/Jbh/index");
-var WxyRouter = require("./routes/Wxy/index");
+var WxyRouter = require("./routes/wxy/index");
 var ZjfRouter = require("./routes/Zjf/index");
 
 var app = express();

@@ -2,7 +2,7 @@
 const config = {
   // 数据库配置
   mongodb: {
-    uri: process.env.MONGODB_URI || 'mongodb+srv://2732849023:kV2y2TU4cYPq6Y9C@cluster0.plvxg2d.mongodb.net/medical'
+    uri: process.env.MONGODB_URI || 'mongodb+srv://2732849023:kV2y2TU4cYPq6Y9C@cluster0.plvxg2d.mongodb.net/healthcare_app'
   },
   
   // 服务器配置

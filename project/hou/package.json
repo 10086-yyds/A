@@ -14,6 +14,11 @@
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "mongoose": "^8.16.5",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "ws": "^8.14.2"
+  },
+  "scripts": {
+    "start": "node ./bin/www",
+    "websocket": "node websocket-server.js"
   }
 }
