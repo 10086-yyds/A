@@ -15,6 +15,15 @@ import MyOrders from '../pages/Orders/MyOrders';
 import OrderDetail from '../pages/Orders/OrderDetail';
 import LogisticsDetail from '../pages/Orders/LogisticsDetail';
 
+//金刚区
+import Jgq from '../components/Jgq.tsx';
+//订单页面
+import DrugOrder from '../pages/Drug/DrugOrder.tsx';
+import DrugInfo from '../pages/Drug/DrugInfo.tsx';
+import PayMoney from '../pages/Drug/PayMoney.tsx';
+
+import AddressList from '../pages/Cart/AddressList.tsx';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -85,6 +94,12 @@ const AppNavigator = () => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
+
+        <Stack.Screen name="Jgq" component={Jgq}/>
+        <Stack.Screen name="DrugOrder" component={DrugOrder}/>
+        <Stack.Screen name="DrugInfo" component={DrugInfo}/>
+        <Stack.Screen name="PayMoney" component={PayMoney}/>
+        <Stack.Screen name="AddressList" component={AddressList}/>
         <Stack.Screen name="MyOrders" component={MyOrders} />
         <Stack.Screen name="OrderDetail" component={OrderDetail} />
         <Stack.Screen name="LogisticsDetail" component={LogisticsDetail} />

@@ -66,6 +66,14 @@ let drugSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  key:{
+    type:String,
+    default:''
+  },
+  shelf:{
+    type:Boolean,
+    default:false
+  }
 }); //药品表
 
 let drugModel = mongoose.model("drug", drugSchema, "drug");
@@ -74,7 +82,63 @@ let videoSchema = new mongoose.Schema({}); //视频表
 
 let videoModel = mongoose.model("video", videoSchema, "video");
 
-let orderSchema = new mongoose.Schema({}); //药品订单表
+
+
+const generateOrderNumber = () => {
+  // 固定前缀DD + 10位随机字母数字组合
+  const prefix = 'DD';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomStr = '';
+  
+  for (let i = 0; i < 10; i++) {
+    randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return prefix + randomStr;
+};
+
+
+const generatePhoneNumber = () => {
+  const first = '1';
+  const second = Math.floor(Math.random() * 7) + 3; // 3-9之间的数字
+  let rest = '';
+  
+  for (let i = 0; i < 9; i++) {
+    rest += Math.floor(Math.random() * 10);
+  }
+  
+  return first + second + rest;
+};
+
+
+let orderSchema = new mongoose.Schema({
+  orderNumber: {
+    type: String,
+    unique: true, 
+    default: generateOrderNumber // 自动生成订单编号
+  },
+  phoneNumber: {
+    type: String,
+    default: generatePhoneNumber // 自动生成电话号码
+  },
+  illName:{
+    type:String,
+    default:"张三"  //患者姓名
+  },
+  orderPrice:String, // 订单金额
+  orderTime:{ //付款时间
+    type:Date,
+    default:Date.now
+  },
+  orderStatus:{ // 订单状态
+    type:Boolean,
+    default:false
+  },
+  address:{
+    type:String,
+    default:"陕西省西安市莲湖区东华门街道158号世纪博苑三期南区12-3-1601室"
+  }
+});
 
 let orderModel = mongoose.model("order", orderSchema, "order");
 
