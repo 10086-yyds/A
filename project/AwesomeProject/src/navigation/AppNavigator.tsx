@@ -11,6 +11,15 @@ import Drug from '../pages/Drug/Drug';
 import Cart from '../pages/Cart/Cart';
 import Mine from '../pages/Mine/Mine';
 
+//金刚区
+import Jgq from '../components/Jgq.tsx';
+//订单页面
+import DrugOrder from '../pages/Drug/DrugOrder.tsx';
+import DrugInfo from '../pages/Drug/DrugInfo.tsx';
+import PayMoney from '../pages/Drug/PayMoney.tsx';
+
+import AddressList from '../pages/Cart/AddressList.tsx';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -80,6 +89,11 @@ const AppNavigator = () => {
       >
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
+        <Stack.Screen name="Jgq" component={Jgq}/>
+        <Stack.Screen name="DrugOrder" component={DrugOrder}/>
+        <Stack.Screen name="DrugInfo" component={DrugInfo}/>
+        <Stack.Screen name="PayMoney" component={PayMoney}/>
+        <Stack.Screen name="AddressList" component={AddressList}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

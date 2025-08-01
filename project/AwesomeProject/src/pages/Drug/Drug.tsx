@@ -8,18 +8,18 @@ import {
   TouchableOpacity, 
   Image,
   Dimensions,
-  FlatList
+  FlatList,
+  Alert
 } from 'react-native';
 import Navbar from '../../components/Navbar';
 
 
 const { width } = Dimensions.get('window');
 
-const Drug = () => {
+const Drug = ({ navigation }: any) => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [drugProducts, setDrugProducts] = useState([]);
   const carouselRef = useRef(null);
-
   const bannerData = [
     {
       id: 1,
@@ -40,16 +40,16 @@ const Drug = () => {
   ];
 
   const categories = [
-    { id: 1, name: '感冒发烧', image: require('../../../image/j1.png') },
-    { id: 2, name: '抗菌消炎', image: require('../../../image/j2.png') },
-    { id: 3, name: '肠胃消化', image: require('../../../image/j3.png') },
-    { id: 4, name: '皮肤用药', image: require('../../../image/j4.png') },
-    { id: 5, name: '咳嗽呼吸', image: require('../../../image/j5.png') },
-    { id: 6, name: '妇科用药', image: require('../../../image/j6.png') },
-    { id: 7, name: '儿童用药', image: require('../../../image/j7.png') },
-    { id: 8, name: '骨科疼痛', image: require('../../../image/j8.png') },
-    { id: 9, name: '耳鼻咽喉', image: require('../../../image/j9.png') },
-    { id: 10, name: '心脑血管', image: require('../../../image/j10.png') }
+    { id: 1, name: '感冒发烧', image: require('../../../image/j1.png'), key: '1' },
+    { id: 2, name: '抗菌消炎', image: require('../../../image/j2.png'), key: '1' },
+    { id: 3, name: '肠胃消化', image: require('../../../image/j3.png'), key: '2' },
+    { id: 4, name: '皮肤用药', image: require('../../../image/j4.png'), key: '2' },
+    { id: 5, name: '咳嗽呼吸', image: require('../../../image/j5.png'), key: '3' },
+    { id: 6, name: '妇科用药', image: require('../../../image/j6.png'), key: '3' },
+    { id: 7, name: '儿童用药', image: require('../../../image/j7.png'), key: '4' },
+    { id: 8, name: '骨科疼痛', image: require('../../../image/j8.png'), key: '4' },
+    { id: 9, name: '耳鼻咽喉', image: require('../../../image/j9.png'), key: '1' },
+    { id: 10, name: '心脑血管', image: require('../../../image/j10.png'), key: '2' }
   ];
 
   // 默认商品数据（如果后端没有数据时显示）
@@ -72,14 +72,17 @@ const Drug = () => {
 
   const fetchDrugData = async () => {
     try{
-      const url = 'http://192.168.100.198:3000/Zjf'
+      const url = 'http://172.20.10.3:3000/Zjf'
       const response = await fetch(url)
       if(response.ok){
         const data = await response.json()
-        console.log('后端返回的数据:', data)
-        // 将数据设置到状态中
         if(data.data && data.data.length > 0) {
-          setDrugProducts(data.data)
+          const processedData = data.data.map((item: any) => ({
+            ...item,
+            // 将localhost替换为实际IP地址
+            image: item.image ? item.image.replace('localhost', '172.20.10.3') : null
+          }))
+          setDrugProducts(processedData)
         }
         return data
       }
@@ -100,6 +103,14 @@ const Drug = () => {
       </TouchableOpacity>
     );
   };
+
+  const handleCategoryPress = (category: any) => {
+    navigation.navigate('Jgq',{
+      categoryName: category.name,
+      categoryId: category.id,
+      key:category.key
+    })
+  }
 
   return (
     <View style={styles.container}>
@@ -159,7 +170,11 @@ const Drug = () => {
         <View style={styles.categoryContainer}>
           <View style={styles.categoryGrid}>
             {categories.map((category, index) => (
-              <TouchableOpacity key={category.id} style={styles.categoryItem}>
+              <TouchableOpacity 
+                key={category.id} 
+                style={styles.categoryItem}
+                onPress={() => handleCategoryPress(category)}
+              >
                 <View style={styles.categoryIcon}>
                   <Image source={category.image} style={styles.categoryIconImage} resizeMode="contain" />
                 </View>
@@ -176,9 +191,18 @@ const Drug = () => {
         <View style={styles.productsContainer}>
           {(drugProducts.length > 0 ? drugProducts : defaultProducts).map((product: any) => (
             <TouchableOpacity key={product._id} style={styles.productCard}>
-              <View style={styles.productImage}>
-                <Image source={{ uri: product.image }} style={styles.productImage} />
-              </View>
+                              <View style={styles.productImage}>
+                  {product.image ? (
+                    <Image 
+                      source={{ uri: product.image }} 
+                      style={styles.image}
+                      onLoad={() => console.log('图片加载成功:', product.image)}
+                      onError={(error) => console.log('图片加载失败:', product.image, error.nativeEvent.error)}
+                    />
+                  ) : (
+                    <Text style={styles.productImagePlaceholder}>📋</Text>
+                  )}
+                </View>
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>{product.name}</Text>
                 <View style={styles.productBottom}>
@@ -200,6 +224,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  image:{
+    width:100,
+    height:100
+  },
+  productImagePlaceholder: {
+    fontSize: 30,
+    color: '#ccc',
   },
   content: {
     flex: 1,
@@ -331,10 +363,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  productImagePlaceholder: {
-    fontSize: 30,
-    color: '#ccc',
   },
   productInfo: {
     flex: 1,
