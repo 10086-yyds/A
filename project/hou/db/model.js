@@ -1,6 +1,52 @@
 let mongoose = require("./database");
 
-let userSchema = new mongoose.Schema({}); //用户表
+let userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 20
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6
+  },
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, '请输入有效的邮箱地址']
+  },
+  phone: {
+    type: String,
+    trim: true,
+    match: [/^1[3-9]\d{9}$/, '请输入有效的手机号码']
+  },
+  avatar: {
+    type: String,
+    default: ''
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'banned'],
+    default: 'active'
+  },
+  lastLoginTime: {
+    type: Date,
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}); //用户表
 
 let userModel = mongoose.model("user", userSchema, "user");
 
@@ -15,10 +61,10 @@ let caseModel = mongoose.model("case", caseSchema, "case");
 let drugSchema = new mongoose.Schema({
   image: String,
   name: String,
-  price:Number,
-  tag:{
-    type:String,
-    default:''
+  price: Number,
+  tag: {
+    type: String,
+    default: ''
   },
 }); //药品表
 
