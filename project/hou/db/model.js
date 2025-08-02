@@ -201,72 +201,22 @@ let drugSchema = new mongoose.Schema({});
 
 let drugModel = mongoose.model("drug", drugSchema, "drug");
 
-let roleSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  }, //角色名称
-  permission: {
-    type: Array,
-    required: true,
-  }, //权限
-});
-
-let roleModel = mongoose.model("role", roleSchema, "role");
-
-let positionSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  realName: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
-  roleID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "role",
-  },
-});
-
-let positionModel = mongoose.model("position", positionSchema, "position");
-
 let orderSchema = new mongoose.Schema({});
 
 let orderModel = mongoose.model("order", orderSchema, "order");
 
-<<<<<<< HEAD
 let consultationSchema = new mongoose.Schema({}); //问诊订单表
 
 let consultationModel = mongoose.model("consultation",consultationSchema,"consultation");
 
-=======
->>>>>>> 1413d5112b9720f744a31d624cbdfa55b2a6d8f3
 module.exports = {
   userModel,
   drugModel,
   roleModel,
   positionModel,
   orderModel,
-<<<<<<< HEAD
   consultationModel,
-  positionModel,
-  roleModel,
-=======
   chatSessionModel,
   messageModel,
   onlineUserModel,
->>>>>>> 1413d5112b9720f744a31d624cbdfa55b2a6d8f3
 };
