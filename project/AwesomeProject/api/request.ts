@@ -40,7 +40,7 @@ function requestWithConcurrency<T = unknown>(
         .catch((err: AxiosError) => {
           if (retry < MAX_RETRY) {
             // 重试
-            requestWithConcurrency(config, retry + 1)
+            requestWithConcurrency<T>(config, retry + 1)
               .then(resolve)
               .catch(reject);
           } else {

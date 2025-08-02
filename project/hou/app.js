@@ -1,6 +1,9 @@
 // 加载环境变量
 require('dotenv').config();
 
+// 初始化数据库连接
+require('./db/database');
+
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
