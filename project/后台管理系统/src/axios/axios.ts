@@ -6,13 +6,16 @@ import type {
   AxiosError,
   InternalAxiosRequestConfig,
 } from 'axios'
+import { ElMessage } from 'element-plus'
 
-// 响应数据接口
+// 响应数据接口 - 适配你的后端格式
 interface ApiResponse<T = any> {
-  code: number
-  message: string
-  data: T
-  success: boolean
+  message?: string
+  msg?: string
+  user?: T
+  data?: T
+  success?: boolean
+  code?: number
 }
 
 // 请求配置接口
@@ -34,7 +37,7 @@ class HttpRequest {
 
   constructor() {
     // 根据环境设置基础URL
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+    this.baseURL = 'http://127.0.0.1:3000'
     this.timeout = 10000
 
     // 创建axios实例
@@ -85,21 +88,49 @@ class HttpRequest {
 
         const { data } = response
 
-        // 根据业务状态码处理
-        if (data.code === 200 || data.success) {
-          return data
+        // 调试：打印后端返回的数据
+        console.log('后端返回数据:', data)
+        console.log('请求URL:', response.config.url)
+
+        // 根据你的后端接口格式处理
+        // 登录接口：成功时返回 { code: 200, msg: "登录成功", data: userData }
+        // 其他接口：成功时返回 { success: true, message: "xxx", data: xxx }
+        // 失败时返回 { code: 400, msg: "错误信息" }
+
+        // 检查是否是登录接口
+        if (response.config.url?.includes('/login')) {
+          // 登录接口：只有 code === 200 且 msg === '登录成功' 才算成功
+          if (data.code === 200 && data.msg === '登录成功') {
+            return data
+          } else {
+            // 登录失败处理 - 包括 code: 400 的情况
+            const errorInfo: ErrorInfo = {
+              code: data.code || 400,
+              message: data.msg || '登录失败',
+            }
+            if ((response.config as any).showError !== false) {
+              this.showError(errorInfo.message)
+            }
+            return Promise.reject(errorInfo)
+          }
         } else {
-          // 业务错误处理
-          const errorInfo: ErrorInfo = {
-            code: data.code,
-            message: data.message || '请求失败',
+          // 其他接口处理
+          // 支持两种成功格式：
+          // 1. { success: true, message: "xxx", data: xxx }
+          // 2. { code: 200, msg: "xxx", data: xxx }
+          if (data.success === true || data.code === 200) {
+            return data
+          } else {
+            // 业务错误处理
+            const errorInfo: ErrorInfo = {
+              code: 400,
+              message: data.message || data.msg || '请求失败',
+            }
+            if ((response.config as any).showError !== false) {
+              this.showError(errorInfo.message)
+            }
+            return Promise.reject(errorInfo)
           }
-
-          if ((response.config as any).showError !== false) {
-            this.showError(errorInfo.message)
-          }
-
-          return Promise.reject(errorInfo)
         }
       },
       (error: AxiosError) => {
@@ -111,18 +142,21 @@ class HttpRequest {
           const { status, data } = error.response
 
           switch (status) {
+            case 400:
+              errorMessage = (data as any)?.message || '请求参数错误'
+              break
             case 401:
-              errorMessage = '未授权，请重新登录'
+              errorMessage = (data as any)?.message || '未授权，请重新登录'
               this.handleUnauthorized()
               break
             case 403:
-              errorMessage = '拒绝访问'
+              errorMessage = (data as any)?.message || '拒绝访问'
               break
             case 404:
               errorMessage = '请求地址不存在'
               break
             case 500:
-              errorMessage = '服务器内部错误'
+              errorMessage = (data as any)?.message || '服务器内部错误'
               break
             default:
               errorMessage = (data as any)?.message || `请求失败: ${status}`
@@ -173,8 +207,7 @@ class HttpRequest {
    * 显示错误信息
    */
   private showError(message: string): void {
-    // 这里可以集成消息提示组件，比如Element Plus的Message
-    console.error('错误信息:', message)
+    ElMessage.error(message)
   }
 
   /**

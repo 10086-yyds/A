@@ -13,10 +13,11 @@ var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
-var LzRouter = require("./routes/Lz/index");
-var JbhRouter = require("./routes/Jbh/index");
-var WxyRouter = require("./routes/wxy/index");
-var ZjfRouter = require("./routes/Zjf/index");
+var lzRouter = require("./routes/lz");
+var jbhRouter = require("./routes/jbh");
+var wxyRouter = require("./routes/wxy");
+var zjfRouter = require("./routes/zjf");
+var chatRouter = require("./routes/chat");
 
 var app = express();
 app.use(cors());
@@ -33,10 +34,20 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/Lz", LzRouter);
-app.use("/Jbh", JbhRouter);
-app.use("/Wxy", WxyRouter);
-app.use("/Zjf", ZjfRouter);
+app.use("/lz", lzRouter);
+app.use("/jbh", jbhRouter);
+app.use("/wxy", wxyRouter);
+app.use("/zjf", zjfRouter);
+app.use("/api/chat", chatRouter);
+
+// 聊天相关的API路由
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    message: '聊天服务器运行正常'
+  });
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

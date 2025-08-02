@@ -34,19 +34,30 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  /* 新增主题相关变量 */
+  --card-background: var(--vt-c-white);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --text-muted: rgba(60, 60, 60, 0.66);
 }
 
+/* 强制使用浅色主题，忽略系统深色模式设置 */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
+    /* 保持浅色主题设置 */
+    --color-background: var(--vt-c-white);
+    --color-background-soft: var(--vt-c-white-soft);
+    --color-background-mute: var(--vt-c-white-mute);
 
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
+    --color-border: var(--vt-c-divider-light-2);
+    --color-border-hover: var(--vt-c-divider-light-1);
 
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
+    --color-heading: var(--vt-c-text-light-1);
+    --color-text: var(--vt-c-text-light-1);
+
+    --card-background: var(--vt-c-white);
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --text-muted: rgba(60, 60, 60, 0.66);
   }
 }
 

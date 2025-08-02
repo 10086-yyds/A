@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // 环境区分
 const isProd = process.env.NODE_ENV === 'production';
-const BASE_URL = isProd ? 'https://api.yourdomain.com' : 'http://localhost:3000';
+const BASE_URL = isProd ? 'https://api.yourdomain.com' : 'http://198.18.0.1:3000';
 
 // 最大重试次数
 const MAX_RETRY = 3;

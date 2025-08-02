@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
@@ -13,12 +15,12 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
-    "mongoose": "^8.16.5",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.17.0",
     "morgan": "~1.9.1",
-    "ws": "^8.14.2"
+    "socket.io": "^4.7.4"
   },
-  "scripts": {
-    "start": "node ./bin/www",
-    "websocket": "node websocket-server.js"
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
