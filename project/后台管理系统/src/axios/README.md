@@ -1,182 +1,266 @@
-# API 使用说明
+# Axios 二次封装使用说明
 
 ## 概述
 
-本项目使用 axios 进行 HTTP 请求，并提供了统一的 API 接口管理。
+这是一个基于 Axios 的二次封装，提供了统一的请求处理、错误处理、加载状态管理等功能。
 
-## 主要功能
+## 特性
 
-### 1. 用户相关 API
-- 登录认证
-- 获取用户信息
-- 更新用户信息
-- 上传头像
+- ✅ 统一的请求/响应拦截器
+- ✅ 自动 token 管理
+- ✅ 错误处理和提示
+- ✅ 加载状态管理
+- ✅ 文件上传/下载
+- ✅ TypeScript 类型支持
+- ✅ 可配置的请求选项
 
-### 2. 文章相关 API
-- 获取文章列表
-- 获取文章详情
-- 创建文章
-- 更新文章
-- 删除文章
+## 基础使用
 
-### 3. 医生相关 API (新增)
-- 通过职位列表接口获取医生列表
-- 获取医生详情
-- 创建医生
-- 更新医生
-- 删除医生
-
-## 医生 API 详细说明
-
-### 获取医生列表
-
-通过调用职位列表接口 `/positionList` 然后筛选出医生：
+### 1. 导入并使用
 
 ```typescript
-import { doctorApi } from './api'
+import http from '@/axios/axios'
 
-// 获取医生列表
-const getDoctors = async () => {
-  try {
-    const response = await doctorApi.getDoctorsFromPositions({
-      page: 1,
-      pageSize: 10,
-      keyword: '内科' // 可选，搜索关键词
-    })
-    
-    if (response.code === 200) {
-      console.log('医生列表:', response.data)
-      console.log('总数:', response.total)
-    }
-  } catch (error) {
-    console.error('获取医生列表失败:', error)
-  }
-}
+// GET 请求
+const response = await http.get('/api/users')
+
+// POST 请求
+const response = await http.post('/api/users', {
+  name: '张三',
+  email: 'zhangsan@example.com',
+})
+
+// PUT 请求
+const response = await http.put('/api/users/1', {
+  name: '李四',
+})
+
+// DELETE 请求
+const response = await http.delete('/api/users/1')
 ```
 
-### 医生筛选逻辑
-
-系统会自动筛选出医生职位，筛选条件包括：
-1. `position.roleID._id === '688b5a2043564643c1fdd7b7'` - 医生角色ID
-2. `position.roleID.name?.includes('医生')` - 角色名称包含"医生"
-3. `position.realName?.includes('医生')` - 真实姓名包含"医生"
-4. `position.username?.includes('doctor')` - 用户名包含"doctor"
-
-**注意**: 系统同时支持 `roleID` 为字符串或对象的情况，确保向后兼容。
-
-### 创建医生
+### 2. 带参数的请求
 
 ```typescript
-const createDoctor = async () => {
-  try {
-    const doctorData = {
-      name: '张医生',
-      department: '内科',
-      title: '主治医师',
-      phone: '13800138000',
-      email: 'zhang@hospital.com',
-      status: 'active'
-    }
-    
-    const response = await doctorApi.create(doctorData)
-    console.log('创建成功:', response.data)
-  } catch (error) {
-    console.error('创建失败:', error)
-  }
-}
+// 查询参数
+const response = await http.get('/api/articles', {
+  params: {
+    page: 1,
+    pageSize: 10,
+    keyword: 'Vue',
+  },
+})
+
+// 自定义配置
+const response = await http.post('/api/upload', data, {
+  timeout: 30000,
+  headers: {
+    'Custom-Header': 'value',
+  },
+})
 ```
 
-### 更新医生
+### 3. 文件操作
 
 ```typescript
-const updateDoctor = async (id: string) => {
-  try {
-    const updateData = {
-      title: '副主任医师',
-      status: 'active'
-    }
-    
-    const response = await doctorApi.update(id, updateData)
-    console.log('更新成功:', response.data)
-  } catch (error) {
-    console.error('更新失败:', error)
-  }
-}
+// 上传文件
+const file = document.querySelector('input[type="file"]').files[0]
+const response = await http.upload('/api/upload', file)
+
+// 下载文件
+await http.download('/api/download/file.pdf', 'document.pdf')
 ```
 
-### 删除医生
+## 高级配置
+
+### 1. 静默请求
 
 ```typescript
-const deleteDoctor = async (id: string) => {
-  try {
-    await doctorApi.delete(id)
-    console.log('删除成功')
-  } catch (error) {
-    console.error('删除失败:', error)
-  }
-}
+// 不显示加载状态和错误提示
+const response = await http.get('/api/silent', {
+  showLoading: false,
+  showError: false,
+})
 ```
 
-## 数据接口定义
-
-### Doctor 接口
-
-```typescript
-interface Doctor {
-  id: string
-  name: string
-  department: string
-  title: string
-  phone: string
-  email: string
-  status: 'active' | 'inactive'
-  createTime: string
-}
-```
-
-### Position 接口
-
-```typescript
-interface Position {
-  _id: string
-  username: string
-  password: string
-  realName: string
-  email: string
-  phone: string
-  roleID: string | { _id: string; name: string; [key: string]: any } // 可能是字符串或对象
-  _v: number
-  // 可选字段，用于医生信息
-  department?: string
-  title?: string
-  status?: string
-  createTime?: string
-}
-```
-
-## 使用示例
-
-完整的使用示例请参考 `apiExample` 和 `doctorApiExample` 对象。
-
-## 错误处理
-
-所有 API 调用都包含错误处理，建议使用 try-catch 包装：
+### 2. 自定义错误处理
 
 ```typescript
 try {
-  const response = await doctorApi.getDoctorsFromPositions(params)
+  const response = await http.get('/api/data')
+  console.log('成功:', response.data)
+} catch (error) {
+  console.error('错误:', error.message)
+  // 自定义错误处理逻辑
+}
+```
+
+## API 接口定义
+
+### 响应数据格式
+
+```typescript
+interface ApiResponse<T = any> {
+  code: number // 状态码
+  message: string // 消息
+  data: T // 数据
+  success: boolean // 是否成功
+}
+```
+
+### 请求配置
+
+```typescript
+interface RequestConfig extends AxiosRequestConfig {
+  showLoading?: boolean // 是否显示加载状态
+  showError?: boolean // 是否显示错误提示
+}
+```
+
+## 环境配置
+
+### 1. 基础 URL 配置
+
+在 `axios.ts` 中修改 `baseURL`：
+
+```typescript
+this.baseURL = '/api' // 开发环境
+// this.baseURL = 'https://api.example.com'  // 生产环境
+```
+
+### 2. 超时时间配置
+
+```typescript
+this.timeout = 10000 // 10秒
+```
+
+## 拦截器功能
+
+### 请求拦截器
+
+- 自动添加 Authorization token
+- 显示/隐藏加载状态
+- 请求日志记录
+
+### 响应拦截器
+
+- 统一响应数据格式处理
+- 业务错误处理
+- HTTP 状态码错误处理
+- 自动处理 401 未授权情况
+
+## 错误处理
+
+### HTTP 状态码错误
+
+- `401`: 未授权，自动跳转登录页
+- `403`: 拒绝访问
+- `404`: 请求地址不存在
+- `500`: 服务器内部错误
+
+### 业务错误
+
+根据响应中的 `code` 字段判断业务是否成功：
+
+```typescript
+if (data.code === 200 || data.success) {
+  // 业务成功
+  return data
+} else {
+  // 业务失败
+  throw new Error(data.message)
+}
+```
+
+## 集成 UI 组件
+
+### 1. 加载状态集成
+
+在 `showLoading()` 和 `hideLoading()` 方法中集成您的 UI 组件：
+
+```typescript
+private showLoading(): void {
+  // 集成 Element Plus Loading
+  // ElLoading.service({ fullscreen: true })
+
+  // 集成 Ant Design Vue Loading
+  // message.loading('加载中...', 0)
+}
+
+private hideLoading(): void {
+  // 隐藏加载状态
+}
+```
+
+### 2. 错误提示集成
+
+在 `showError()` 方法中集成您的消息提示组件：
+
+```typescript
+private showError(message: string): void {
+  // 集成 Element Plus Message
+  // ElMessage.error(message)
+
+  // 集成 Ant Design Vue Message
+  // message.error(message)
+}
+```
+
+## 最佳实践
+
+### 1. API 模块化
+
+```typescript
+// api/user.ts
+import http from '@/axios/axios'
+
+export const userApi = {
+  login: (data: LoginParams) => http.post<LoginResponse>('/auth/login', data),
+  getUserInfo: () => http.get<User>('/user/info'),
+  updateUserInfo: (data: Partial<User>) => http.put<User>('/user/info', data),
+}
+```
+
+### 2. 类型安全
+
+```typescript
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+// 使用泛型确保类型安全
+const response = await http.get<User>('/api/user/1')
+const user: User = response.data
+```
+
+### 3. 错误处理
+
+```typescript
+try {
+  const response = await userApi.login(loginData)
   // 处理成功响应
 } catch (error) {
-  // 处理错误
-  console.error('API 调用失败:', error)
+  // 错误已经被拦截器处理，这里可以添加额外逻辑
+  console.error('登录失败:', error)
 }
 ```
 
 ## 注意事项
 
-1. 医生 API 通过职位列表接口获取数据，确保后端 `/lz/positionList` 接口正常工作，并使用 `populate("roleID")` 关联角色信息
-2. 筛选逻辑基于 `roleID` 字段，现在支持对象格式（包含 `_id` 和 `name` 属性）
-3. 所有 API 都支持分页和搜索功能
-4. 状态字段使用 'active' 和 'inactive' 表示在职和离职状态
-5. 需要根据实际的医生roleID来修改筛选条件
-6. 系统同时支持 `roleID` 为字符串或对象的情况，确保向后兼容
+1. **Token 存储**: 默认从 `localStorage` 和 `sessionStorage` 中获取 token
+2. **错误处理**: 大部分错误已在拦截器中处理，无需重复处理
+3. **加载状态**: 默认显示加载状态，可通过配置关闭
+4. **文件上传**: 自动设置正确的 Content-Type
+5. **类型安全**: 建议使用 TypeScript 泛型确保类型安全
+
+## 扩展功能
+
+如需添加更多功能，可以在 `HttpRequest` 类中添加：
+
+- 请求重试机制
+- 请求缓存
+- 请求队列管理
+- 请求取消功能
+- 请求进度监控
