@@ -7,7 +7,6 @@
 var app = require('../app');
 var debug = require('debug')('hou:server');
 var http = require('http');
-var ChatServer = require('../websocket/chatServer');
 
 /**
  * Get port from environment and store in Express.
@@ -21,15 +20,6 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
-
-/**
- * Initialize WebSocket Chat Server
- */
-
-var chatServer = new ChatServer(server);
-
-// 将聊天服务器实例添加到app中，以便在路由中使用
-app.set('chatServer', chatServer);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -99,9 +89,7 @@ function onListening() {
   debug('Listening on ' + bind);
   console.log('🚀 服务器启动成功!');
   console.log(`📡 HTTP服务器运行在端口 ${addr.port}`);
-  console.log(`💬 WebSocket聊天服务器已启动`);
   console.log(`🔗 健康检查: http://localhost:${addr.port}/api/health`);
-  console.log(`👥 在线用户API: http://localhost:${addr.port}/api/chat/users/online`);
 }
 
 // 优雅关闭

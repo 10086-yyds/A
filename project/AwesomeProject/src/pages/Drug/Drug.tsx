@@ -74,7 +74,7 @@ const Drug = ({ navigation }: any) => {
 
     try {
       // {{ AURA-X: Modify - 移除硬编码IP地址. Approved: 安全修复. }}
-      const baseURL = process.env.API_BASE_URL || 'http://198.18.0.1:3000';
+      const baseURL = process.env.API_BASE_URL || 'http://192.168.33.60:3000';
       const url = `${baseURL}/Zjf`;
 
       // 创建超时控制器（兼容性更好的方案）

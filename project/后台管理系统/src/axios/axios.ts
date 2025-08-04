@@ -22,6 +22,8 @@ interface ApiResponse<T = any> {
 interface RequestConfig extends AxiosRequestConfig {
   showLoading?: boolean
   showError?: boolean
+  retry?: number // 重试次数
+  retryDelay?: number // 重试延迟（毫秒）
 }
 
 // 错误信息接口
@@ -39,8 +41,8 @@ class HttpRequest {
     // 根据环境设置基础URL
     // {{ AURA-X: Modify - 移除硬编码API地址. Approved: 安全修复. }}
     // {{ AURA-X: Modify - 更新为用户IPv4地址. Approved: 网络配置修复. }}
-    this.baseURL = process.env.VUE_APP_API_BASE_URL || 'http://198.18.0.1:3000'
-    this.timeout = 10000
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+    this.timeout = 15000 // 增加超时时间到15秒
 
     // 创建axios实例
     this.instance = axios.create({
@@ -53,6 +55,9 @@ class HttpRequest {
 
     // 设置拦截器
     this.setupInterceptors()
+
+    // 检测网络状态
+    this.checkNetworkStatus()
   }
 
   /**
@@ -164,7 +169,12 @@ class HttpRequest {
               errorMessage = (data as any)?.message || `请求失败: ${status}`
           }
         } else if (error.request) {
-          errorMessage = '网络连接失败'
+          // 检查是否是超时错误
+          if (error.code === 'ECONNABORTED') {
+            errorMessage = '请求超时，请检查网络连接'
+          } else {
+            errorMessage = '网络连接失败，请检查服务器状态'
+          }
         } else {
           errorMessage = error.message || '请求配置错误'
         }
@@ -226,17 +236,80 @@ class HttpRequest {
   }
 
   /**
+   * 处理请求重试
+   */
+  private async handleRetry<T>(
+    requestFn: () => Promise<T>,
+    config?: RequestConfig,
+    error?: any
+  ): Promise<T> {
+    const retryCount = config?.retry || 0
+    const retryDelay = config?.retryDelay || 1000
+
+    // 只对网络错误和超时错误进行重试
+    if (retryCount > 0 && (error?.code === 'ECONNABORTED' || !error?.response)) {
+      console.log(`请求失败，${retryDelay}ms后进行第${retryCount}次重试...`)
+
+      await new Promise(resolve => setTimeout(resolve, retryDelay))
+
+      return requestFn().catch(retryError => {
+        if (retryCount > 1) {
+          return this.handleRetry(
+            requestFn,
+            {
+              ...config,
+              retry: retryCount - 1,
+            },
+            retryError
+          )
+        }
+        throw retryError
+      })
+    }
+
+    throw error
+  }
+
+  /**
+   * 检测网络状态
+   */
+  private checkNetworkStatus(): void {
+    if (typeof window !== 'undefined' && 'navigator' in window) {
+      // 监听网络状态变化
+      window.addEventListener('online', () => {
+        console.log('网络已连接')
+        ElMessage.success('网络已连接')
+      })
+
+      window.addEventListener('offline', () => {
+        console.log('网络已断开')
+        ElMessage.warning('网络连接已断开，请检查网络设置')
+      })
+
+      // 检查当前网络状态
+      if (!navigator.onLine) {
+        console.warn('当前网络状态：离线')
+        ElMessage.warning('当前网络连接异常，请检查网络设置')
+      }
+    }
+  }
+
+  /**
    * GET请求
    */
   public get<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.get(url, config)
+    return this.instance.get(url, config).catch(error => {
+      return this.handleRetry(() => this.instance.get(url, config), config, error)
+    })
   }
 
   /**
    * POST请求
    */
   public post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.post(url, data, config)
+    return this.instance.post(url, data, config).catch(error => {
+      return this.handleRetry(() => this.instance.post(url, data, config), config, error)
+    })
   }
 
   /**

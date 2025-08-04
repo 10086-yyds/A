@@ -13,13 +13,17 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  define: {
+    // 定义全局环境变量
+    'process.env': {},
+  },
   server: {
     proxy: {
       '/api': {
         // {{ AURA-X: Modify - 更新为用户IPv4地址. Approved: 网络配置修复. }}
-        target: 'http://198.18.0.1:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, '/api'),
+        rewrite: path => path.replace(/^\/api/, ''),
       },
     },
   },

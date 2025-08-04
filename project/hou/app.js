@@ -1,8 +1,8 @@
 // 加载环境变量
-require('dotenv').config();
+require("dotenv").config();
 
 // 初始化数据库连接
-require('./db/database');
+require("./db/database");
 
 var createError = require("http-errors");
 var express = require("express");
@@ -21,13 +21,23 @@ var chatRouter = require("./routes/chat");
 
 var app = express();
 // {{ AURA-X: Modify - 修复CORS安全配置. Approved: 安全修复. }}
-app.use(cors({
-  // {{ AURA-X: Modify - 添加IPv4地址到CORS允许列表. Approved: 网络配置修复. }}
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:3000", "http://127.0.0.1:3000", "http://198.18.0.1:3000"],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+app.use(
+  cors({
+    // {{ AURA-X: Modify - 添加IPv4地址到CORS允许列表. Approved: 网络配置修复. }}
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",")
+      : [
+          "http://localhost:3000",
+          "http://127.0.0.1:3000",
+          "http://198.18.0.1:3000",
+          "http://localhost:5173",
+          "http://127.0.0.1:5173",
+        ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -48,11 +58,11 @@ app.use("/zjf", zjfRouter);
 app.use("/api/chat", chatRouter);
 
 // 聊天相关的API路由
-app.get('/api/health', (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
-    message: '聊天服务器运行正常'
+    message: "聊天服务器运行正常",
   });
 });
 

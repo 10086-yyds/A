@@ -17,7 +17,8 @@ interface UserInfo {
   email: string
   phone: string
   roleID: string | RoleInfo
-  permissions: string[]
+  role?: RoleInfo
+  permissions?: string[]
 }
 
 // 菜单项接口
@@ -37,8 +38,15 @@ export const useUserStore = defineStore('user', () => {
   // 计算属性
   const hasPermission = computed(() => {
     return (permission: string) => {
-      if (!userInfo.value?.permissions) return false
-      return userInfo.value.permissions.includes(permission)
+      // 检查用户信息中的权限
+      if (userInfo.value?.permissions) {
+        return userInfo.value.permissions.includes(permission)
+      }
+      // 检查角色中的权限
+      if (userInfo.value?.role && typeof userInfo.value.role === 'object' && 'permission' in userInfo.value.role) {
+        return (userInfo.value.role as any).permission.includes(permission)
+      }
+      return false
     }
   })
 

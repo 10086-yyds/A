@@ -33,7 +33,7 @@ const Jgq: React.FC<JgqProps> = ({ route, navigation }) => {
         const queryString = new URLSearchParams(params).toString()
         try {
             // {{ AURA-X: Modify - 移除硬编码IP地址. Approved: 安全修复. }}
-            const baseURL = process.env.API_BASE_URL || 'http://198.18.0.1:3000';
+            const baseURL = process.env.API_BASE_URL || 'http://192.168.33.60:3000';
             const url = `${baseURL}/Zjf/HuiXian?${queryString}`;
             const response = await fetch(url);
             if (response.ok) {
@@ -90,7 +90,7 @@ const Jgq: React.FC<JgqProps> = ({ route, navigation }) => {
         const queryString = new URLSearchParams(params).toString()
         try {
             // {{ AURA-X: Modify - 修复搜索功能硬编码IP. Approved: 安全修复. }}
-            const baseURL = process.env.API_BASE_URL || 'http://198.18.0.1:3000';
+            const baseURL = process.env.API_BASE_URL || 'http://192.168.33.60:3000';
             const url = `${baseURL}/Zjf/SouSuo?${queryString}`;
             const response = await fetch(url);
             if (response.ok) {

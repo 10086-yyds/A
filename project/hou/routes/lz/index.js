@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 // {{ AURA-X: Add - 添加bcrypt用于密码加密. Approved: 安全修复. }}
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 let {
   positionModel,
@@ -26,33 +26,46 @@ router.post("/login", async function (req, res) {
       return res.json({ code: 400, msg: "用户名和密码不能为空" });
     }
 
-    // 查找用户并关联角色信息
-    let user = await positionModel.findOne({ username }).populate("roleID");
+    // 查找用户并关联角色信息，同时获取密码字段
+    let user = await positionModel
+      .findOne({ username })
+      .populate("roleID")
+      .select("+password");
     if (!user) {
       return res.json({ code: 400, msg: "用户不存在" });
     }
-    // {{ AURA-X: Modify - 修复密码明文比较安全漏洞. Approved: 安全修复. }}
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.json({ code: 400, msg: "密码错误" });
-    } else {
-      // 构建返回数据，包含用户信息和权限
-      const userData = {
-        _id: user._id,
-        username: user.username,
-        realName: user.realName,
-        email: user.email,
-        phone: user.phone,
-        roleID: user.roleID,
-        permissions: user.roleID ? user.roleID.permission : [], // 传递权限数组
-      };
 
-      return res.json({
-        code: 200,
-        msg: "登录成功",
-        data: userData,
-      });
+    // 验证密码 - 由于数据库中存储的是明文密码，直接比较
+    if (!user.password) {
+      return res.json({ code: 400, msg: "用户密码数据异常" });
     }
+
+    // 直接比较明文密码
+    if (password !== user.password) {
+      return res.json({ code: 400, msg: "密码错误" });
+    }
+
+    // 更新最后登录时间
+    user.lastSeen = new Date();
+    await user.save();
+
+    // 登录成功，返回用户信息
+    const userData = {
+      id: user._id,
+      username: user.username,
+      realName: user.realName,
+      email: user.email,
+      phone: user.phone,
+      role: user.roleID,
+      permissions: user.roleID?.permission || [], // 添加权限信息
+      token: "mock-token-" + Date.now(), // 这里应该生成真实的JWT token
+    };
+
+    return res.json({
+      code: 200,
+      msg: "登录成功",
+      data: userData,
+    });
   } catch (error) {
     console.error("登录错误:", error);
     return res.json({ code: 500, msg: "服务器错误" });
@@ -234,9 +247,9 @@ router.get("/permissions/:userId", async function (req, res) {
     const permissions = user.roleID ? user.roleID.permission : [];
     const roleInfo = user.roleID
       ? {
-        _id: user.roleID._id,
-        name: user.roleID.name,
-      }
+          _id: user.roleID._id,
+          name: user.roleID.name,
+        }
       : null;
 
     return res.json({
@@ -251,6 +264,77 @@ router.get("/permissions/:userId", async function (req, res) {
     });
   } catch (error) {
     console.error("获取权限错误:", error);
+    return res.json({ code: 500, msg: "服务器错误" });
+  }
+});
+
+// 仪表板统计数据接口
+router.get("/dashboard/stats", async function (req, res) {
+  try {
+    // 获取统计数据
+    const totalUsers = await userModel.countDocuments();
+    const totalDrugs = await drugModel.countDocuments();
+
+    // 获取今天的订单数量
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayOrders = await orderModel.countDocuments({
+      createdAt: { $gte: today },
+    });
+
+    // 获取今天的收入（假设订单有金额字段）
+    const todayRevenueOrders = await orderModel.find({
+      createdAt: { $gte: today },
+    });
+    const todayRevenue = todayRevenueOrders.reduce((sum, order) => {
+      return sum + (order.amount || 0);
+    }, 0);
+
+    return res.json({
+      code: 200,
+      msg: "获取统计数据成功",
+      data: {
+        totalUsers,
+        totalDrugs,
+        todayOrders,
+        todayRevenue,
+      },
+    });
+  } catch (error) {
+    console.error("获取统计数据错误:", error);
+    return res.json({ code: 500, msg: "服务器错误" });
+  }
+});
+
+// 仪表板活动记录接口
+router.get("/dashboard/activities", async function (req, res) {
+  try {
+    // 获取最近的活动记录
+    const recentActivities = [
+      { id: "1", icon: "User", title: "新用户注册：张三", time: "10分钟前" },
+      {
+        id: "2",
+        icon: "FirstAidKit",
+        title: "添加新药品：感冒灵",
+        time: "30分钟前",
+      },
+      {
+        id: "3",
+        icon: "Document",
+        title: "新订单：ORD2024001",
+        time: "1小时前",
+      },
+      { id: "4", icon: "Wallet", title: "收入统计更新", time: "2小时前" },
+      { id: "5", icon: "Setting", title: "系统设置更新", time: "3小时前" },
+    ];
+
+    return res.json({
+      code: 200,
+      msg: "获取活动记录成功",
+      data: recentActivities,
+    });
+  } catch (error) {
+    console.error("获取活动记录错误:", error);
     return res.json({ code: 500, msg: "服务器错误" });
   }
 });

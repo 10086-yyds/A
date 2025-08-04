@@ -3,7 +3,7 @@ export const WebSocketConfig = {
   // {{ AURA-X: Modify - 更新为用户IPv4地址. Approved: 网络配置修复. }}
   // 开发环境
   development: {
-    serverUrl: 'http://198.18.0.1:3001',
+    serverUrl: 'ws://localhost:8082/chat',
     timeout: 20000,
     reconnectionAttempts: 5,
     reconnectionDelay: 3000,

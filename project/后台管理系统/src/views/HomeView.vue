@@ -319,7 +319,7 @@ onMounted(async () => {
   // 初始化主题
   themeStore.initTheme()
   // 获取数据
-  await getDashboardStats()
+  // await getDashboardStats()
   // await getRecentActivities()
   // 初始化图表
   await initCharts()

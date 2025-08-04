@@ -65,8 +65,8 @@ const Shou = ({ navigation }: any) => {
 
   const carouselRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
-  const [articleData, setArticleData] = useState([])
-  const [doctor, setDoctor] = useState([])
+  const [articleData, setArticleData] = useState([]);
+  const [doctor, setDoctor] = useState([]);
   // {{ AURA-X: Add - 模拟数据，实际项目中应从API获取. Approval: 用户需求确认. }}
   // 轮播图数据
   const carouselData: CarouselItem[] = [
@@ -87,8 +87,6 @@ const Shou = ({ navigation }: any) => {
     { id: '6', name: '线上购药', subtitle: '送药到家', icon: '💊', color: '#FF9FF3' },
   ];
 
-
-
   // 科室分类
   const departments = ['内科', '外科', '产科', '儿科', '皮肤科', '心理科'];
   // 文章分类映射
@@ -96,7 +94,7 @@ const Shou = ({ navigation }: any) => {
     0: '女性健康',
     1: '心理健康',
     2: '科学备孕',
-    3: '科学育儿'
+    3: '科学育儿',
   };
 
   // 根据cate字段过滤文章
@@ -105,7 +103,9 @@ const Shou = ({ navigation }: any) => {
     if (!Array.isArray(articleData) || articleData.length === 0) return [];
 
     const selectedCategoryIndex = articleCategories.indexOf(selectedArticleTab);
-    const filtered = articleData.filter((article: Article) => article.cate === selectedCategoryIndex);
+    const filtered = articleData.filter(
+      (article: Article) => article.cate === selectedCategoryIndex,
+    );
 
     return filtered;
   };
@@ -113,35 +113,33 @@ const Shou = ({ navigation }: any) => {
   const getArticle = async () => {
     try {
       // {{ AURA-X: Modify - 移除硬编码IP地址. Approved: 安全修复. }}
-      const baseURL = process.env.API_BASE_URL || 'http://192.168.182.240:3000';
-      const res = await axios.get(`${baseURL}/Wxy/getArticle`);
+      const baseURL = process.env.API_BASE_URL || 'http://192.168.33.60:3000';
+      const res = await axios.get(`${baseURL}/wxy/getArticle`);
       // {{ AURA-X: Add - 确保articleData始终是数组，防止filter错误. }}
       setArticleData(Array.isArray(res.data) ? res.data : []);
-
     } catch (error) {
       // {{ AURA-X: Add - API失败时设置为空数组，防止undefined错误. }}
       setArticleData([]);
       console.warn('获取文章数据失败:', error);
     }
-  }
+  };
   const getDoctor = async () => {
     try {
       // {{ AURA-X: Modify - 移除硬编码IP地址. Approved: 安全修复. }}
-      const baseURL = process.env.API_BASE_URL || 'http://192.168.182.240:3000';
-      const docres = await axios.get(`${baseURL}/Wxy/getDoctor`);
+      const baseURL = process.env.API_BASE_URL || 'http://192.168.33.60:3000';
+      const docres = await axios.get(`${baseURL}/wxy/getDoctor`);
       // {{ AURA-X: Add - 确保doctor数据始终是数组. }}
       setDoctor(Array.isArray(docres.data) ? docres.data : []);
-
     } catch (error) {
       // {{ AURA-X: Add - API失败时设置为空数组. }}
       setDoctor([]);
       console.warn('获取医生数据失败:', error);
     }
-  }
+  };
   useEffect(() => {
     getArticle();
     getDoctor();
-  }, [])
+  }, []);
 
   // 问答数据
   const qaData: QAItem[] = [
@@ -151,7 +149,7 @@ const Shou = ({ navigation }: any) => {
       answer: '建议规律作息，睡前避免刺激性食物...',
       doctorName: '王医生',
       time: '2小时前',
-      replies: 12
+      replies: 12,
     },
     {
       id: '2',
@@ -159,7 +157,7 @@ const Shou = ({ navigation }: any) => {
       answer: '建议物理降温，观察精神状态...',
       doctorName: '李医生',
       time: '1小时前',
-      replies: 8
+      replies: 8,
     },
   ];
 
@@ -181,7 +179,6 @@ const Shou = ({ navigation }: any) => {
 
         break;
       default:
-
     }
   };
 
@@ -258,16 +255,18 @@ const Shou = ({ navigation }: any) => {
           activeOpacity={0.8}
           onPress={async () => {
             try {
-              const username = await AsyncStorage.getItem('userName') || "甜甜";
-              const userAvatar = await AsyncStorage.getItem('userAvatar') || AvatarUtils.getDefaultAvatarIdentifier();
+              const username = (await AsyncStorage.getItem('userName')) || '甜甜';
+              const userAvatar =
+                (await AsyncStorage.getItem('userAvatar')) ||
+                AvatarUtils.getDefaultAvatarIdentifier();
               navigation.navigate('LineLiao', { username, userAvatar, item });
             } catch (error) {
               // 已移除调试日志
               // 使用默认值
               navigation.navigate('LineLiao', {
-                username: "甜甜",
+                username: '甜甜',
                 userAvatar: AvatarUtils.getDefaultAvatarIdentifier(),
-                item
+                item,
               });
             }
           }}
@@ -306,10 +305,14 @@ const Shou = ({ navigation }: any) => {
     >
       <Text style={styles.articleEmoji}>📄</Text>
       <View style={styles.articleContent}>
-        <Text style={styles.articleTitle} numberOfLines={2}>{item.title}</Text>
+        <Text style={styles.articleTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
         <View style={styles.articleFooter}>
           <Text style={styles.articleViews}>{item.browse}次浏览</Text>
-          <Text style={styles.articleCategory}>{categoryMap[item.cate as keyof typeof categoryMap]}</Text>
+          <Text style={styles.articleCategory}>
+            {categoryMap[item.cate as keyof typeof categoryMap]}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -318,16 +321,14 @@ const Shou = ({ navigation }: any) => {
   // {{ AURA-X: Add - Tab切换组件. Approval: 用户需求中要求多个Tab切换功能. }}
   const renderTabBar = (tabs: string[], selectedTab: string, onTabPress: (tab: string) => void) => (
     <View style={styles.tabContainer}>
-      {tabs.map((tab) => (
+      {tabs.map(tab => (
         <TouchableOpacity
           key={tab}
           style={[styles.tab, selectedTab === tab && styles.activeTab]}
           onPress={() => onTabPress(tab)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, selectedTab === tab && styles.activeTabText]}>
-            {tab}
-          </Text>
+          <Text style={[styles.tabText, selectedTab === tab && styles.activeTabText]}>{tab}</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -337,7 +338,6 @@ const Shou = ({ navigation }: any) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8FAFE" />
       <ScrollView showsVerticalScrollIndicator={false} bounces={true}>
-
         {/* {{ AURA-X: Add - 顶部导航区域. Approval: 用户需求中要求显示城市选择和APP标题. }} */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.citySelector} activeOpacity={0.7}>
@@ -372,7 +372,7 @@ const Shou = ({ navigation }: any) => {
             numColumns={3}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
           />
         </View>
 
@@ -385,12 +385,11 @@ const Shou = ({ navigation }: any) => {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-              { useNativeDriver: false }
-            )}
-            onMomentumScrollEnd={(event) => {
+            keyExtractor={item => item.id}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
+              useNativeDriver: false,
+            })}
+            onMomentumScrollEnd={event => {
               const index = Math.round(event.nativeEvent.contentOffset.x / width);
               setCurrentCarouselIndex(index);
             }}
@@ -399,10 +398,7 @@ const Shou = ({ navigation }: any) => {
             {carouselData.map((_, index) => (
               <View
                 key={index}
-                style={[
-                  styles.dot,
-                  index === currentCarouselIndex && styles.activeDot
-                ]}
+                style={[styles.dot, index === currentCarouselIndex && styles.activeDot]}
               />
             ))}
           </View>
@@ -423,7 +419,7 @@ const Shou = ({ navigation }: any) => {
             renderItem={renderDoctorCard}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item._id}
+            keyExtractor={item => item._id}
             ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>暂无医生信息</Text>
@@ -445,7 +441,7 @@ const Shou = ({ navigation }: any) => {
             renderItem={renderQAItem}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
           />
         </View>
 
@@ -462,7 +458,7 @@ const Shou = ({ navigation }: any) => {
             renderItem={renderArticleItem}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item._id}
+            keyExtractor={item => item._id}
             ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>暂无{selectedArticleTab}相关文章</Text>
@@ -470,7 +466,6 @@ const Shou = ({ navigation }: any) => {
             )}
           />
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -856,4 +851,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Shou; 
+export default Shou;

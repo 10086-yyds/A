@@ -12,6 +12,8 @@ import Drug from '../pages/Drug/Drug';
 import Cart from '../pages/Cart/Cart';
 import Mine from '../pages/Mine/Mine';
 import AiConsult from '../pages/AiConsult/AiConsult';
+import PatientChat from '../pages/PatientChat/PatientChat';
+import WebSocketDebug from '../pages/WebSocketDebug/WebSocketDebug';
 import ArticleDetail from '../pages/Detail/ArticleDetail';
 import LineLiao from '../pages/LineLiao/LineLiao';
 import MyOrders from '../pages/Orders/MyOrders';
@@ -98,6 +100,8 @@ const AppNavigator = () => {
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="MainApp" component={TabNavigator} />
         <Stack.Screen name="AiConsult" component={AiConsult} />
+        <Stack.Screen name="PatientChat" component={PatientChat} />
+        <Stack.Screen name="WebSocketDebug" component={WebSocketDebug} />
         <Stack.Screen name="ArticleDetail" component={ArticleDetail} />
         <Stack.Screen name="LineLiao" component={LineLiao} />
 

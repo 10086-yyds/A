@@ -37,6 +37,16 @@ const LineLiao = ({ route, navigation }: any) => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [currentChatId, setCurrentChatId] = useState<string>('');
 
+  // 跳转到新的聊天页面
+  const navigateToPatientChat = () => {
+    navigation.navigate('PatientChat');
+  };
+
+  // 跳转到WebSocket调试页面
+  const navigateToWebSocketTest = () => {
+    navigation.navigate('WebSocketDebug');
+  };
+
   // 从路由参数获取医生信息，如果没有则使用默认值
   const getDoctorInfo = () => {
     const doctorData = route?.params?.item;
@@ -48,7 +58,7 @@ const LineLiao = ({ route, navigation }: any) => {
         hospital: doctorData.hospital || '医院',
         avatar: doctorData.avatar || 'https://via.placeholder.com/40/2E86C1/FFFFFF?text=医',
         consultations: doctorData.consultations || 0,
-        rating: doctorData.rating || 4.9
+        rating: doctorData.rating || 4.9,
       };
     }
     // 默认医生信息
@@ -59,7 +69,7 @@ const LineLiao = ({ route, navigation }: any) => {
       hospital: '医院',
       avatar: 'https://via.placeholder.com/40/2E86C1/FFFFFF?text=张',
       consultations: 1280,
-      rating: 4.9
+      rating: 4.9,
     };
   };
 
@@ -94,17 +104,14 @@ const LineLiao = ({ route, navigation }: any) => {
       // 设置WebSocket事件监听器
       websocketManager.setEventListeners({
         onConnect: () => {
-
           setIsConnected(true);
           setConnectionStatus('connected');
         },
         onDisconnect: () => {
-
           setIsConnected(false);
           setConnectionStatus('disconnected');
         },
         onMessage: (message: ChatMessage) => {
-
           setMessages(prev => [...prev, message]);
           // 自动滚动到底部
           setTimeout(() => {
@@ -121,12 +128,11 @@ const LineLiao = ({ route, navigation }: any) => {
         },
         onDoctorStatusChange: (doctorId: string, isOnline: boolean) => {
           console.log(`医生${doctorId}状态变更:`, isOnline ? '在线' : '离线');
-        }
+        },
       });
 
       // 建立WebSocket连接
       await websocketManager.connect(userId, doctorId, userInfo.userName);
-
     } catch (error) {
       console.error('初始化WebSocket聊天失败:', error);
       Alert.alert('连接失败', '无法连接到服务器，请检查网络');
@@ -208,7 +214,7 @@ const LineLiao = ({ route, navigation }: any) => {
       console.error('加载用户信息失败:', error);
       setUserInfo({
         userName: '甜甜',
-        userAvatar: AvatarUtils.getDefaultAvatarIdentifier()
+        userAvatar: AvatarUtils.getDefaultAvatarIdentifier(),
       });
     }
   };
@@ -256,24 +262,17 @@ const LineLiao = ({ route, navigation }: any) => {
       // 更新消息状态为已发送，并使用真实的消息ID
       setMessages(prev =>
         prev.map(msg =>
-          msg.id === tempMessageId
-            ? { ...msg, id: realMessageId, status: 'sent' }
-            : msg
-        )
+          msg.id === tempMessageId ? { ...msg, id: realMessageId, status: 'sent' } : msg,
+        ),
       );
 
       console.log('消息发送成功:', realMessageId);
-
     } catch (error) {
       console.error('发送消息失败:', error);
 
       // 更新消息状态为失败
       setMessages(prev =>
-        prev.map(msg =>
-          msg.id === tempMessageId
-            ? { ...msg, status: 'failed' }
-            : msg
-        )
+        prev.map(msg => (msg.id === tempMessageId ? { ...msg, status: 'failed' } : msg)),
       );
 
       Alert.alert('发送失败', '消息发送失败，请重试');
@@ -289,38 +288,30 @@ const LineLiao = ({ route, navigation }: any) => {
 
     // 更新消息状态为发送中
     setMessages(prev =>
-      prev.map(msg =>
-        msg.id === failedMessage.id
-          ? { ...msg, status: 'sending' }
-          : msg
-      )
+      prev.map(msg => (msg.id === failedMessage.id ? { ...msg, status: 'sending' } : msg)),
     );
 
     try {
       // 重新发送消息
-      const newMessageId = await websocketManager.sendChatMessage(failedMessage.text, failedMessage.userName);
+      const newMessageId = await websocketManager.sendChatMessage(
+        failedMessage.text,
+        failedMessage.userName,
+      );
 
       // 更新消息状态为已发送，并使用新的消息ID
       setMessages(prev =>
         prev.map(msg =>
-          msg.id === failedMessage.id
-            ? { ...msg, id: newMessageId, status: 'sent' }
-            : msg
-        )
+          msg.id === failedMessage.id ? { ...msg, id: newMessageId, status: 'sent' } : msg,
+        ),
       );
 
       console.log('消息重发成功:', newMessageId);
-
     } catch (error) {
       console.error('消息重发失败:', error);
 
       // 恢复失败状态
       setMessages(prev =>
-        prev.map(msg =>
-          msg.id === failedMessage.id
-            ? { ...msg, status: 'failed' }
-            : msg
-        )
+        prev.map(msg => (msg.id === failedMessage.id ? { ...msg, status: 'failed' } : msg)),
       );
 
       Alert.alert('重发失败', '消息重发失败，请稍后再试');
@@ -332,11 +323,14 @@ const LineLiao = ({ route, navigation }: any) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
 
-    if (diff < 60000) { // 1分钟内
+    if (diff < 60000) {
+      // 1分钟内
       return '刚刚';
-    } else if (diff < 3600000) { // 1小时内
+    } else if (diff < 3600000) {
+      // 1小时内
       return `${Math.floor(diff / 60000)}分钟前`;
-    } else if (diff < 86400000) { // 24小时内
+    } else if (diff < 86400000) {
+      // 24小时内
       return `${Math.floor(diff / 3600000)}小时前`;
     } else {
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString().slice(0, 5);
@@ -345,17 +339,16 @@ const LineLiao = ({ route, navigation }: any) => {
 
   // 渲染消息项
   const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[
-      styles.messageContainer,
-      item.isFromUser ? styles.userMessageContainer : styles.doctorMessageContainer
-    ]}>
+    <View
+      style={[
+        styles.messageContainer,
+        item.isFromUser ? styles.userMessageContainer : styles.doctorMessageContainer,
+      ]}
+    >
       {!item.isFromUser && (
         <View style={styles.doctorHeader}>
           {doctorInfo.avatar && doctorInfo.avatar.startsWith('http') ? (
-            <Image
-              source={{ uri: doctorInfo.avatar }}
-              style={styles.avatar}
-            />
+            <Image source={{ uri: doctorInfo.avatar }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.emojiAvatar]}>
               <Text style={styles.emojiText}>{doctorInfo.avatar || '👨‍⚕️'}</Text>
@@ -378,33 +371,24 @@ const LineLiao = ({ route, navigation }: any) => {
         </View>
       )}
 
-      <View style={[
-        styles.messageBubble,
-        item.isFromUser ? styles.userBubble : styles.doctorBubble
-      ]}>
-        <Text style={[
-          styles.messageText,
-          item.isFromUser ? styles.userText : styles.doctorText
-        ]}>
+      <View
+        style={[styles.messageBubble, item.isFromUser ? styles.userBubble : styles.doctorBubble]}
+      >
+        <Text style={[styles.messageText, item.isFromUser ? styles.userText : styles.doctorText]}>
           {item.text}
         </Text>
 
         <View style={styles.messageFooter}>
-          <Text style={[
-            styles.timeText,
-            item.isFromUser ? styles.userTimeText : styles.doctorTimeText
-          ]}>
+          <Text
+            style={[styles.timeText, item.isFromUser ? styles.userTimeText : styles.doctorTimeText]}
+          >
             {formatTime(item.timestamp)}
           </Text>
 
           {item.isFromUser && (
             <View style={styles.statusContainer}>
-              {item.status === 'sending' && (
-                <Text style={styles.statusText}>发送中...</Text>
-              )}
-              {item.status === 'sent' && (
-                <Text style={styles.statusText}>已发送</Text>
-              )}
+              {item.status === 'sending' && <Text style={styles.statusText}>发送中...</Text>}
+              {item.status === 'sent' && <Text style={styles.statusText}>已发送</Text>}
               {item.status === 'failed' && (
                 <TouchableOpacity onPress={() => retryFailedMessage(item)}>
                   <Text style={styles.failedText}>发送失败 - 点击重试</Text>
@@ -434,10 +418,7 @@ const LineLiao = ({ route, navigation }: any) => {
 
       {/* 头部导航 */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
@@ -452,33 +433,34 @@ const LineLiao = ({ route, navigation }: any) => {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.moreButton}>
-          <Text style={styles.moreButtonText}>⋮</Text>
-        </TouchableOpacity>
+                 <View style={styles.headerButtons}>
+           <TouchableOpacity style={styles.headerButton} onPress={navigateToWebSocketTest}>
+             <Text style={styles.moreButtonText}>🔧</Text>
+           </TouchableOpacity>
+           <TouchableOpacity style={styles.headerButton} onPress={navigateToPatientChat}>
+             <Text style={styles.moreButtonText}>💬</Text>
+           </TouchableOpacity>
+         </View>
       </View>
 
       {/* {{ AURA-X: Modify - 根据WebSocket连接状态显示不同提示信息. Approval: 优化用户体验. }} */}
       {/* 连接状态提示 */}
       {connectionStatus !== 'connected' && (
-        <View style={[
-          styles.connectionBanner,
-          connectionStatus === 'error' && styles.errorBanner,
-          connectionStatus === 'connecting' && styles.connectingBanner
-        ]}>
-          <Text style={[
-            styles.connectionText,
-            connectionStatus === 'error' && styles.errorText
-          ]}>
+        <View
+          style={[
+            styles.connectionBanner,
+            connectionStatus === 'error' && styles.errorBanner,
+            connectionStatus === 'connecting' && styles.connectingBanner,
+          ]}
+        >
+          <Text style={[styles.connectionText, connectionStatus === 'error' && styles.errorText]}>
             {connectionStatus === 'connecting' && '正在连接到医生...'}
             {connectionStatus === 'reconnecting' && '网络连接不稳定，正在重新连接...'}
             {connectionStatus === 'disconnected' && '连接已断开，请检查网络'}
             {connectionStatus === 'error' && '连接失败，请重试'}
           </Text>
           {connectionStatus === 'error' && (
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={initializeWebSocketChat}
-            >
+            <TouchableOpacity style={styles.retryButton} onPress={initializeWebSocketChat}>
               <Text style={styles.retryButtonText}>重试连接</Text>
             </TouchableOpacity>
           )}
@@ -516,15 +498,21 @@ const LineLiao = ({ route, navigation }: any) => {
           <TouchableOpacity
             style={[
               styles.sendButton,
-              (inputText.trim() === '' || !isConnected) ? styles.sendButtonDisabled : styles.sendButtonActive
+              inputText.trim() === '' || !isConnected
+                ? styles.sendButtonDisabled
+                : styles.sendButtonActive,
             ]}
             onPress={sendMessage}
             disabled={inputText.trim() === '' || !isConnected}
           >
-            <Text style={[
-              styles.sendButtonText,
-              (inputText.trim() === '' || !isConnected) ? styles.sendButtonTextDisabled : styles.sendButtonTextActive
-            ]}>
+            <Text
+              style={[
+                styles.sendButtonText,
+                inputText.trim() === '' || !isConnected
+                  ? styles.sendButtonTextDisabled
+                  : styles.sendButtonTextActive,
+              ]}
+            >
               发送
             </Text>
           </TouchableOpacity>
@@ -584,6 +572,16 @@ const styles = StyleSheet.create({
     color: '#E8F4FD',
     fontSize: 12,
     marginTop: 2,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   moreButton: {
     width: 40,
@@ -809,4 +807,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LineLiao; 
+export default LineLiao;

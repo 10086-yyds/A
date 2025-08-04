@@ -1,10 +1,11 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // {{ AURA-X: Modify - 修复硬编码URL配置. Approved: 安全修复. }}
-// 环境区分  
+// 环境区分
 const isProd = process.env.NODE_ENV === 'production';
 // {{ AURA-X: Modify - 更新为用户IPv4地址. Approved: 网络配置修复. }}
-const BASE_URL = process.env.API_BASE_URL || (isProd ? 'https://api.yourdomain.com' : 'http://198.18.0.1:3000');
+const BASE_URL =
+  process.env.API_BASE_URL || (isProd ? 'https://api.yourdomain.com' : 'http://192.168.33.60:3000');
 
 // 最大重试次数
 const MAX_RETRY = 3;

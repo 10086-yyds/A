@@ -5,8 +5,9 @@ const url = require('url');
 
 // 创建WebSocket服务器
 const wss = new WebSocket.Server({ 
-  port: 8080,
-  path: '/chat'
+  port: 8082,
+  path: '/chat',
+  host: '0.0.0.0' // 监听所有网络接口，允许外部连接
 });
 
 // 存储连接的映射表
@@ -14,8 +15,8 @@ const connections = new Map(); // userId -> WebSocket连接
 const doctorConnections = new Map(); // doctorId -> WebSocket连接
 const chatRooms = new Map(); // chatId -> { userId, doctorId, userWs, doctorWs }
 
-console.log('WebSocket服务器启动，监听端口 8080');
-console.log('WebSocket路径: ws://localhost:8080/chat');
+console.log('WebSocket服务器启动，监听端口 8082');
+console.log('WebSocket路径: ws://localhost:8082/chat');
 
 wss.on('connection', (ws, request) => {
   // 解析连接参数
@@ -25,13 +26,16 @@ wss.on('connection', (ws, request) => {
   const userName = query.userName || '用户';
   
   console.log(`新连接: userId=${userId}, doctorId=${doctorId}, userName=${userName}`);
+  console.log(`客户端IP: ${request.socket.remoteAddress}`);
+  console.log(`请求URL: ${request.url}`);
   
   if (!userId || !doctorId) {
     ws.close(1000, '缺少必要参数');
     return;
   }
 
-  const chatId = `chat_${userId}_${doctorId}`;
+  // 使用固定的聊天室ID，确保医生和患者在同一个聊天室
+  const chatId = `chat_patient_001_doctor_001`;
   
   // 存储连接信息
   ws.userId = userId;
@@ -56,8 +60,16 @@ wss.on('connection', (ws, request) => {
     chatRooms.set(chatId, chatRoom);
   }
   
-  // 根据连接类型设置聊天室
-  chatRoom.userWs = ws;
+  // 根据连接类型设置聊天室 - 区分医生和患者
+  if (userId.startsWith('admin_') || userId.startsWith('doctor_')) {
+    // 医生连接
+    chatRoom.doctorWs = ws;
+    console.log(`医生连接: ${userName} (${userId})`);
+  } else {
+    // 患者连接
+    chatRoom.userWs = ws;
+    console.log(`患者连接: ${userName} (${userId})`);
+  }
   
   // 发送连接成功消息
   sendMessage(ws, {
@@ -128,12 +140,19 @@ wss.on('connection', (ws, request) => {
     // 更新聊天室状态
     const chatRoom = chatRooms.get(chatId);
     if (chatRoom) {
-      chatRoom.userWs = null;
+      // 根据连接类型清除对应的WebSocket
+      if (userId.startsWith('admin_') || userId.startsWith('doctor_')) {
+        chatRoom.doctorWs = null;
+        console.log(`医生 ${userName} 断开连接`);
+      } else {
+        chatRoom.userWs = null;
+        console.log(`患者 ${userName} 断开连接`);
+      }
       
       // 如果聊天室没有活跃连接，可以选择删除
       if (!chatRoom.userWs && !chatRoom.doctorWs) {
         chatRooms.delete(chatId);
-        console.log `聊天室 ${chatId} 已删除`;
+        console.log(`聊天室 ${chatId} 已删除`);
       }
     }
   });
@@ -182,16 +201,82 @@ function handleChatMessage(ws, data) {
     }
   });
   
-  // 模拟医生回复（实际项目中应该转发给真实的医生连接）
-  setTimeout(() => {
-    simulateDoctorReply(ws, {
-      userId,
-      doctorId,
-      userName,
-      userMessage: message,
-      chatId
-    });
-  }, 1000 + Math.random() * 3000);
+  // 获取聊天室
+  const chatRoom = chatRooms.get(chatId);
+  if (!chatRoom) {
+    console.log('聊天室不存在:', chatId);
+    return;
+  }
+  
+  // 判断消息发送者是医生还是患者
+  const isDoctor = userId.startsWith('admin_') || userId.startsWith('doctor_');
+  
+  console.log(`消息处理: userId=${userId}, isDoctor=${isDoctor}, message=${message}`);
+  console.log(`聊天室状态: userWs=${!!chatRoom.userWs}, doctorWs=${!!chatRoom.doctorWs}`);
+  
+  if (isDoctor) {
+    // 医生发送消息给患者
+    console.log('医生发送消息，准备转发给患者...');
+    if (chatRoom.userWs && chatRoom.userWs.readyState === WebSocket.OPEN) {
+      const messageToSend = {
+        type: 'message',
+        data: {
+          messageId: `doctor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: userId,
+          doctorId: doctorId,
+          userName: userName,
+          doctorName: userName,
+          message: message,
+          chatId,
+          timestamp: new Date().toISOString()
+        }
+      };
+      console.log('发送给患者的消息:', JSON.stringify(messageToSend));
+      sendMessage(chatRoom.userWs, messageToSend);
+      console.log(`医生 ${userName} 发送消息给患者: ${message}`);
+    } else {
+      console.log('患者不在线，无法发送消息');
+      console.log('患者WebSocket状态:', chatRoom.userWs ? chatRoom.userWs.readyState : 'null');
+    }
+  } else {
+    // 患者发送消息给医生
+    console.log('患者发送消息，准备转发给医生...');
+    if (chatRoom.doctorWs && chatRoom.doctorWs.readyState === WebSocket.OPEN) {
+      const messageToSend = {
+        type: 'message',
+        data: {
+          messageId: `patient_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: userId,
+          doctorId: doctorId,
+          userName: userName,
+          doctorName: `医生${doctorId}`,
+          message: message,
+          chatId,
+          timestamp: new Date().toISOString()
+        }
+      };
+      console.log('发送给医生的消息:', JSON.stringify(messageToSend));
+      sendMessage(chatRoom.doctorWs, messageToSend);
+      console.log(`患者 ${userName} 发送消息给医生: ${message}`);
+    } else {
+      console.log('医生不在线，无法发送消息');
+      console.log('医生WebSocket状态:', chatRoom.doctorWs ? chatRoom.doctorWs.readyState : 'null');
+      // 如果医生不在线，可以发送系统消息
+      sendMessage(ws, {
+        type: 'message',
+        data: {
+          messageId: `system_${Date.now()}`,
+          userId: 'system',
+          doctorId: doctorId,
+          userName: '系统',
+          doctorName: '系统',
+          message: '医生暂时不在线，请稍后再试。',
+          chatId,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+  }
 }
 
 // 模拟医生回复

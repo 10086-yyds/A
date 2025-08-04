@@ -11,6 +11,21 @@ interface User {
   lastLoginTime?: string;
 }
 
+interface LoginResponse {
+  code: number;
+  msg: string;
+  data: {
+    id: string;
+    username: string;
+    realName?: string;
+    email?: string;
+    phone?: string;
+    role?: any;
+    permissions?: string[];
+    token: string;
+  };
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -75,10 +90,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       });
 
-      if (response.status === 200 && response.data.success) {
+      const responseData = response.data as any;
+      if (response.status === 200 && responseData.success) {
         // token有效，更新用户信息
-        setUser(response.data.data);
-        await AsyncStorage.setItem('userData', JSON.stringify(response.data.data));
+        setUser(responseData.data);
+        await AsyncStorage.setItem('userData', JSON.stringify(responseData.data));
       }
     } catch (error) {
       // token无效，清除本地存储
@@ -99,8 +115,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       });
 
-      if (response.status === 200 && response.data.success) {
-        const { user: userData, token: userToken } = response.data.data;
+      const responseData = response.data as any;
+      
+      if (response.status === 200 && responseData.success) {
+        const userData = responseData.data.user;
+        const userToken = responseData.data.token;
 
         // 保存到状态
         setUser(userData);
@@ -116,7 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         return {
           success: false,
-          message: response.data.message || '登录失败'
+          message: responseData.message || '登录失败'
         };
       }
     } catch (error: any) {
